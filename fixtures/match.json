@@ -1,0 +1,15 @@
+{
+  "errorCode": 0,
+  "success": true,
+  "isMatched": true,
+  "matches": [
+    {
+      "episodeId": 123450001,
+      "animeId": 990001,
+      "animeTitle": "示例作品",
+      "episodeTitle": "第 1 话",
+      "type": "tvseries",
+      "typeDescription": "TV动画"
+    }
+  ]
+}

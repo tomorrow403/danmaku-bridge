@@ -61,7 +61,7 @@ GET  /api/v2/comment/{episodeId}      获取指定剧集的弹幕
 ## 四、安装与使用
 
 ```bash
-git clone https://github.com/<your-name>/danmaku-bridge.git
+git clone https://github.com/tomorrow403/danmaku-bridge.git
 cd danmaku-bridge
 
 # 凭证：环境变量或配置文件，二选一（不要把 AppSecret 提交到仓库）

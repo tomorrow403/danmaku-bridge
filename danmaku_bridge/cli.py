@@ -53,11 +53,38 @@ def cmd_doctor(_: argparse.Namespace) -> int:
     return 0 if app_id and app_secret else 2
 
 
+def _print_plan(files, args: argparse.Namespace) -> int:
+    """--dry-run：只打印处理计划，不读指纹、不请求接口、不写任何文件。
+
+    用途是在真正发起请求前确认「会处理哪些文件、大致会调用几次接口」，
+    避免手滑写出一个指向整个媒体库的路径而触发大量请求。
+    """
+    picked = files[: args.limit]
+    plan = [f for f in picked if not (os.path.exists(f.ass_path) and not args.overwrite)]
+    skipped = len(picked) - len(plan)
+
+    print("[dry-run] 只显示处理计划：不读取指纹、不发起请求、不写入文件")
+    for media in plan:
+        print(f"  → {media.name}")
+        print(f"      1) 计算文件指纹（{args.hash_mode}）")
+        print("      2) POST /api/v2/match")
+        print("      3) GET  /api/v2/comment/{episodeId}")
+        print(f"      4) 写入 {os.path.basename(media.ass_path)}")
+    print(
+        f"\n计划处理 {len(plan)} 个文件，跳过 {skipped} 个，"
+        f"预计请求 {len(plan) * 2} 次，间隔 {args.interval}s"
+    )
+    return 0
+
+
 def cmd_run(args: argparse.Namespace) -> int:
     files = scan(args.path, recursive=not args.no_recursive)
     if not files:
         print(f"未找到视频文件：{args.path}")
         return 1
+
+    if args.dry_run:
+        return _print_plan(files, args)
 
     cache = MatchCache(args.cache or CACHE_PATH, ttl=args.cache_ttl)
 
@@ -153,6 +180,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--with-related", action="store_true", help="同时获取关联剧集弹幕")
     p_run.add_argument("--overwrite", action="store_true", help="覆盖已存在的 .ass")
     p_run.add_argument("--no-recursive", action="store_true")
+    p_run.add_argument("--dry-run", action="store_true", help="只打印处理计划，不读指纹、不请求、不写文件")
     p_run.add_argument("--mock", action="store_true", help="使用 fixtures 固定响应，便于离线验证")
     p_run.add_argument("--mock-dir", default="fixtures")
     p_run.set_defaults(func=cmd_run)

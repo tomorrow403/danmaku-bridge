@@ -6,7 +6,7 @@
 
 ```console
 $ python -m danmaku_bridge doctor
-DanmakuBridge 0.3.0
+DanmakuBridge 0.4.0
 AppId: 已配置 test***
 AppSecret: 已配置
 配置文件路径: ~/.config/danmaku-bridge/config.json
@@ -23,7 +23,28 @@ $ python -m danmaku_bridge scan /media/anime
   [待处理] 示例作品 - 第02话.mkv  (8.0 MB)
 ```
 
-## 3. 生成字幕
+## 3. 预览执行计划（dry-run，不读指纹、不联网、不写文件）
+
+```console
+$ python -m danmaku_bridge run /media/anime --dry-run
+[dry-run] 只显示处理计划：不读取指纹、不发起请求、不写入文件
+  → 示例作品 - 第01话.mkv
+      1) 计算文件指纹（head16m）
+      2) POST /api/v2/match
+      3) GET  /api/v2/comment/{episodeId}
+      4) 写入 示例作品 - 第01话.ass
+  → 示例作品 - 第02话.mkv
+      1) 计算文件指纹（head16m）
+      2) POST /api/v2/match
+      3) GET  /api/v2/comment/{episodeId}
+      4) 写入 示例作品 - 第02话.ass
+
+计划处理 2 个文件，跳过 0 个，预计请求 4 次，间隔 1.0s
+```
+
+`--dry-run` 不需要 AppId，也不会产生任何网络流量，适合在正式执行前确认路径没有指错。
+
+## 4. 生成字幕
 
 ```console
 $ python -m danmaku_bridge run /media/anime --limit 20
@@ -34,7 +55,7 @@ $ python -m danmaku_bridge run /media/anime --limit 20
 
 单集只产生 2 次请求：`/api/v2/match` 一次、`/api/v2/comment/{episodeId}` 一次。
 
-## 4. 产物
+## 5. 产物
 
 输出的 `.ass` 与视频同目录、同名，媒体服务器会自动识别为外挂字幕：
 
@@ -45,7 +66,7 @@ $ python -m danmaku_bridge run /media/anime --limit 20
 └── 示例作品 - 第02话.mkv
 ```
 
-## 5. 重复运行不会重复请求
+## 6. 重复运行不会重复请求
 
 ```console
 $ python -m danmaku_bridge run /media/anime

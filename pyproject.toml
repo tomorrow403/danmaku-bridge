@@ -1,6 +1,6 @@
 [project]
 name = "danmaku-bridge"
-version = "0.3.0"
+version = "0.4.0"
 description = "为 NAS 媒体库生成弹幕字幕（.ass）的桥接工具，不内置播放器"
 requires-python = ">=3.9"
 dependencies = []

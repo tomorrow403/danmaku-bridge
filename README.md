@@ -9,7 +9,7 @@
 
 - 语言：Python 3.9+（标准库实现，无第三方依赖）
 - 平台：Windows / macOS / Linux / NAS（Docker）
-- 状态：可用（v0.3），持续维护
+- 状态：可用（v0.4），持续维护
 
 ---
 
@@ -38,6 +38,9 @@
 | 识别结果缓存 | 默认 6 小时（官方建议 2–6 小时） |
 | 已存在字幕 | 直接跳过，不重复请求 |
 | 预取 / 全库遍历 / 并发 | **不做** |
+
+真正发起请求前，可以先用 `run --dry-run` 预览：只打印将要处理的文件与预计请求数，
+不读指纹、不联网、不写文件，也不需要有 AppId。
 
 ## 二、调用的接口
 
@@ -71,6 +74,7 @@ export DANDAN_APP_SECRET=your_app_secret
 
 python -m danmaku_bridge doctor              # 检查凭证与请求策略
 python -m danmaku_bridge scan /media/anime   # 只列出待处理文件，不联网
+python -m danmaku_bridge run  /media/anime --dry-run   # 先预览计划，不发请求
 python -m danmaku_bridge run  /media/anime   # 识别并生成 .ass
 ```
 
@@ -85,6 +89,7 @@ python -m danmaku_bridge run  /media/anime   # 识别并生成 .ass
 | `--max-comments N` | 单个文件最多写入的弹幕条数（默认 3000） |
 | `--resolution 1920x1080` | 字幕分辨率，需与片源匹配 |
 | `--overwrite` | 覆盖已存在的 `.ass` |
+| `--dry-run` | 只打印处理计划与预计请求数，不读指纹、不联网、不写文件 |
 | `--mock` | 使用 `fixtures/` 固定响应离线验证，不发起网络请求 |
 
 Docker（NAS 常用）：
@@ -130,11 +135,12 @@ danmaku-bridge/
 │   ├── client.py     # 签名、限速、请求上限、缓存
 │   ├── matcher.py    # 目录扫描、文件指纹、识别结果解析
 │   └── ass.py        # 弹幕 → ASS 字幕（轨道分配、样式、时间轴）
-├── tests/            # 12 项单元与端到端测试（离线，不联网）
+├── tests/            # 14 项单元与端到端测试（离线，不联网）
 ├── fixtures/         # 离线固定响应，用于测试与演示
 ├── docs/
 │   ├── demo.md       # 实际运行记录
 │   └── sample.ass    # 产物样例
+├── CHANGELOG.md      # 版本更新记录
 ├── Dockerfile
 └── pyproject.toml
 ```
@@ -146,10 +152,14 @@ python -m unittest discover -s tests -v
 ```
 
 覆盖：签名算法、弹幕解析、ASS 生成（含顶部/底部/转义/去重）、目录扫描、指纹计算、
-缓存过期，以及一次完整的离线端到端流程（扫描 → 识别 → 取弹幕 → 写 .ass → 重复运行跳过）。
+缓存过期、`--dry-run` 计划输出（不写文件、正确统计跳过数），以及一次完整的离线端到端流程
+（扫描 → 识别 → 取弹幕 → 写 .ass → 重复运行跳过）。共 14 项，全部离线执行。
 
 ## 九、开发日志
 
+- 2026-10-30 v0.4 新增 `run --dry-run`：执行前先打印处理计划与预计请求数，不读指纹、
+  不联网、不写文件，避免路径写错导致大批量请求；补充 2 项对应测试（共 14 项）
+- 2026-10-30 v0.3.1 修正 README 中一处 Markdown 加粗不生效的写法，统一文档术语
 - 2026-10-29 v0.3 完成 ASS 渲染（轨道分配、颜色、描边、顶/底固定弹幕）
 - 2026-10-29 v0.2 加入请求限速、单次上限、识别结果缓存与凭证占位机制
 - 2026-10-29 v0.1 完成目录扫描、文件指纹、识别与弹幕拉取链路

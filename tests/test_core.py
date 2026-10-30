@@ -1,5 +1,7 @@
 import base64
+import contextlib
 import hashlib
+import io
 import os
 import sys
 import tempfile
@@ -104,6 +106,41 @@ class TestCache(unittest.TestCase):
             cache.put("a.mkv", 100, {"isMatched": True})
             self.assertIsNotNone(MatchCache(path, ttl=3600).get("a.mkv", 100))
             self.assertIsNone(MatchCache(path, ttl=-1).get("a.mkv", 100))
+
+
+class TestDryRun(unittest.TestCase):
+    """--dry-run 必须做到：不读指纹、不请求、不写文件、不需要凭证。"""
+
+    def test_plan_makes_no_requests_and_no_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            media = os.path.join(tmp, "a.mkv")
+            with open(media, "wb") as fh:
+                fh.write(b"x" * 1024)
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = main(["run", tmp, "--dry-run"])
+
+            out = buf.getvalue()
+            self.assertEqual(code, 0)
+            self.assertIn("[dry-run]", out)
+            self.assertIn("预计请求 2 次", out)
+            self.assertFalse(os.path.exists(os.path.splitext(media)[0] + ".ass"))
+
+    def test_plan_counts_existing_subtitles_as_skipped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            media = os.path.join(tmp, "a.mkv")
+            with open(media, "wb") as fh:
+                fh.write(b"x" * 1024)
+            with open(os.path.splitext(media)[0] + ".ass", "w", encoding="utf-8") as fh:
+                fh.write("[Script Info]\n")
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = main(["run", tmp, "--dry-run"])
+
+            self.assertEqual(code, 0)
+            self.assertIn("跳过 1 个", buf.getvalue())
 
 
 class TestEndToEndMock(unittest.TestCase):

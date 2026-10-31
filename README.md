@@ -9,7 +9,7 @@
 
 - 语言：Python 3.9+（标准库实现，无第三方依赖）
 - 平台：Windows / macOS / Linux / NAS（Docker）
-- 状态：可用（v0.4），持续维护
+- 状态：可用（v0.4）
 
 ---
 
